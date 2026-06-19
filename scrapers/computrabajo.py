@@ -20,6 +20,7 @@ headers = {
 respuesta = requests.get(url, headers=headers, timeout=10)
 
 if respuesta.status_code == 200:
+    respuesta.encoding = respuesta.apparent_encoding
     soup = BeautifulSoup(respuesta.text, 'html.parser')
     ofertas = soup.find_all('article', class_="box_offer")
     print(soup.title)
