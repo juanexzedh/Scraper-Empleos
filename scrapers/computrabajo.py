@@ -124,15 +124,6 @@ if respuesta.status_code == 200:
             "url": complete_url
         }
         ofertas_estructuradas.append(ofertas_dict)
-
-        """
-        print(f"Oferta {cont}:")
-        print(f"Titulo:{titulo} \nEmpresa: {empresa} \nCiudad: {ciudad} \nSalario:{salario_numerico} \nURL: {complete_url}")
-        print(f"Descripcion: {descripcion}")
-        print(f"Requerimientos: {requerimientos}")
-        print(f"Palabras Clave: {palabras_clave}")
-        print(f"Publicacion: {publicacion}")
-        """
         cont+=1
     
     print("\n--- PROCESO TERMINADO ---")
@@ -140,7 +131,7 @@ if respuesta.status_code == 200:
     if ofertas_estructuradas:
         print("\nEjemplo de estructura de la primera oferta:")
         print(ofertas_estructuradas[0])
-        
+
 else:
     print(f"Hubo un error: {respuesta.status_code}")
 
