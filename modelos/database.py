@@ -67,12 +67,44 @@ def insertar_ofertas(lista_ofertas):
                 oferta["salario"],
                 oferta["descripcion"],
                 oferta["requerimientos"],
-                oferta["palabras_Clave"],
+                oferta["palabras_clave"],
                 oferta["fecha_publicacion"],
                 oferta["fecha_scraping"],
                 oferta["url"],
             )
             )
-        
     conexion.commit()
+    cursor.execute("SELECT * FROM empleos")
+    print(cursor.fetchall())
     conexion.close()
+
+
+def obtener_total_ofertas():
+    conexion = sqlite3.connect("data/empleos.db")
+    cursor = conexion.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM empleos")
+    total = cursor.fetchone()[0]
+
+    conexion.close()
+    return total
+
+def obtener_empresas_top():
+    conexion = sqlite3.connect("data/empleos.db")
+    cursor = conexion.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM empleos")
+    total = cursor.fetchone()[0]
+
+    conexion.close()
+    return total
+
+def obtener_ciudades_top():
+
+
+def obtener_salario_promedio():
+
+
+def buscar_por_palabra_clave():
+
+
