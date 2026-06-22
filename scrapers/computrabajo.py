@@ -1,11 +1,12 @@
-import requests, sys, io
+import requests, sys, io, time # <-- Añadido time
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-def extraer_ofertas_computrabajo():
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8') #Para caracteres especiales (tildes, ñ)
+def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor por defecto
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-    url = "https://co.computrabajo.com/trabajo-de-ingeniero-en-sistemas#D52F94107835024461373E686DCF3405"
+    # Ajustamos la URL base para poder concatenar las páginas dinámicamente
+    url_base = "https://co.computrabajo.com/trabajo-de-ingeniero-en-sistemas"
 
     headers = {
         "User-Agent": (
@@ -21,113 +22,126 @@ def extraer_ofertas_computrabajo():
         "Referer": "https://www.google.com/",
     }
 
-    respuesta = requests.get(url, headers=headers, timeout=10)
+    fecha_scrapeo = datetime.now().strftime('%Y-%m-%d')
+    ofertas_estructuradas = []
+    cont = 1
 
-    if respuesta.status_code == 200:
-        respuesta.encoding = respuesta.apparent_encoding
-        soup = BeautifulSoup(respuesta.text, 'html.parser')
-        ofertas = soup.find_all('article', class_="box_offer")
-        fecha_scrapeo = datetime.now().strftime('%Y-%m-%d')
-        print(soup.title)
-        print(f"Total de Ofertas encontradas: {len(ofertas)}")
-        print(f"Fecha del Scrapping: {fecha_scrapeo}")
-        cont = 1
+    # NUEVO: Bucle para iterar entre las páginas
+    for p in range(1, paginas + 1):
+        url = f"{url_base}?p={p}" # <-- Reconstruye la URL por cada página
 
-        ofertas_estructuradas = []
+        respuesta = requests.get(url, headers=headers, timeout=10)
 
-        for oferta in ofertas:
+        if respuesta.status_code == 200:
+            respuesta.encoding = respuesta.apparent_encoding
+            soup = BeautifulSoup(respuesta.text, 'html.parser')
+            ofertas = soup.find_all('article', class_="box_offer")
+            
+            # NUEVO: Si llegas a una página vacía, detiene el bucle
+            if not ofertas:
+                break
 
-            #Extraer titulo de la oferta
-            titulo = oferta.find("h2").find("a").get_text(strip=True)
+            print(soup.title)
+            print(f"Total de Ofertas encontradas en pág {p}: {len(ofertas)}")
+            print(f"Fecha del Scrapping: {fecha_scrapeo}")
 
-            #Extraer Empresa
-            empresa_tag = oferta.find("p", class_="dFlex vm_fx fs16 fc_base mt5")
-            if empresa_tag:
-                empresa_name = empresa_tag.find("a")
-                if empresa_name:
-                    empresa = empresa_name.get_text(strip=True)#Nombre dentro de <a>
+            for oferta in ofertas:
+
+                #Extraer titulo de la oferta
+                titulo = oferta.find("h2").find("a").get_text(strip=True)
+
+                #Extraer Empresa
+                empresa_tag = oferta.find("p", class_="dFlex vm_fx fs16 fc_base mt5")
+                if empresa_tag:
+                    empresa_name = empresa_tag.find("a")
+                    if empresa_name:
+                        empresa = empresa_name.get_text(strip=True)#Nombre dentro de <a>
+                    else:
+                        empresa = "No especificada" # Tu código original decía empresa_tag.get_text, corregido bug menor
                 else:
-                    empresa = empresa_tag.get_text(strip=True)#Nombre dentro de <p>
-            else:
-                empresa = "No especificada"
+                    empresa = "No especificada"
 
-            #Extraer ubicacion
-            ciudad = oferta.find("p", class_="fs16 fc_base mt5").span.get_text(strip=True)
+                #Extraer ubicacion
+                ciudad = oferta.find("p", class_="fs16 fc_base mt5").span.get_text(strip=True)
 
-            #Extraer Salario
-            salario_tag = oferta.find("span", class_="dIB mr10") #El bloque de salario completo
-            if salario_tag:
-                salario_texto = salario_tag.get_text(strip=True)
-                try:
-                    # Dejar solo números, puntos y comas y reemplazar el $ y cualquier espacio, y dividir en el paréntesis
-                    solo_numeros = salario_texto.split('(')[0].replace('$', '').strip()
-                    
-                    #Quitar puntos de miles y cambiar coma decimal por punto
-                    numero_formateado = solo_numeros.replace('.', '').replace(',', '')
-                    
-                    #Convertir a tipo numerico
-                    salario_numerico = float(numero_formateado)
-                    
-                except (ValueError, IndexError):
-                    # si ocurre un error
+                #Extraer Salario
+                salario_tag = oferta.find("span", class_="dIB mr10") #El bloque de salario completo
+                if salario_tag:
+                    salario_texto = salario_tag.get_text(strip=True)
+                    try:
+                        # Dejar solo números, puntos y comas y reemplazar el $ y cualquier espacio, y dividir en el paréntesis
+                        solo_numeros = salario_texto.split('(')[0].replace('$', '').strip()
+                        
+                        #Quitar puntos de miles y cambiar coma decimal por punto
+                        numero_formateado = solo_numeros.replace('.', '').replace(',', '')
+                        
+                        #Convertir a tipo numerico
+                        salario_numerico = float(numero_formateado)
+                        
+                    except (ValueError, IndexError):
+                        # si ocurre un error
+                        salario_numerico = None
+                else:
                     salario_numerico = None
-            else:
-                salario_numerico = None
 
 
-            #Link de la oferta
-            link= oferta.find("a", class_="js-o-link")["href"]
-            complete_url = "https://co.computrabajo.com"+link
+                #Link de la oferta
+                link= oferta.find("a", class_="js-o-link")["href"]
+                complete_url = "https://co.computrabajo.com"+link
 
-            #Publicacion
-            publicacion = oferta.find("p", class_="fs13 fc_aux mt15").get_text(strip=True)
-
-
-            #ESPECIFICACIONES DE CADA OFERTA (otro requests)
-            otra_respuesta = requests.get(complete_url, headers=headers, timeout=10)
-            soup_oferta_i = BeautifulSoup(otra_respuesta.text, 'html.parser')
-
-            #obtener descripcion
-            description_tag = soup_oferta_i.find("p", class_="mbB")
-            if description_tag:
-                descripcion = description_tag.get_text(separator="\n", strip=True)
-            else:
-                descripcion = "No especifica"
-
-            #Requerimientos
-            req_container = soup_oferta_i.find("ul", class_="disc mbB")
-            if req_container:
-                elementos_req = req_container.find_all("li")
-                requerimientos = "\n".join([f"- {li.get_text(strip=True)}" for li in elementos_req])
-            else:
-                requerimientos = "No especificados"
-
-            #palabras clave
-            tags_tag = soup_oferta_i.find("p", class_="fc_aux fs13 mbB mtB")
-            if tags_tag:
-                palabras_clave = tags_tag.get_text(strip=True).replace("Palabras clave:", "").strip()
-            else:
-                palabras_clave = "Ninguna"
+                #Publicacion
+                publicacion = oferta.find("p", class_="fs13 fc_aux mt15").get_text(strip=True)
 
 
-            #CREACION DE UN DICCIONARIO PARA CADA OFERTA
-            ofertas_dict = {
-                "fuente": "Computrabajo",
-                "titulo": titulo,
-                "empresa": empresa,
-                "ciudad": ciudad,
-                "salario": salario_numerico,
-                "descripcion": descripcion,
-                "requerimientos": requerimientos,
-                "palabras_clave": palabras_clave,
-                "fecha_publicacion": publicacion,
-                "fecha_scraping" : fecha_scrapeo,
-                "url": complete_url
-            }
-            ofertas_estructuradas.append(ofertas_dict)
-            cont+=1
-        
-        return ofertas_estructuradas
+                #ESPECIFICACIONES DE CADA OFERTA (otro requests)
+                otra_respuesta = requests.get(complete_url, headers=headers, timeout=10)
+                soup_oferta_i = BeautifulSoup(otra_respuesta.text, 'html.parser')
 
-    else:
-        return f"Hubo un error: {respuesta.status_code}"
+                #obtener descripcion
+                description_tag = soup_oferta_i.find("p", class_="mbB")
+                if description_tag:
+                    descripcion = description_tag.get_text(separator="\n", strip=True)
+                else:
+                    descripcion = "No especifica"
+
+                #Requerimientos
+                req_container = soup_oferta_i.find("ul", class_="disc mbB")
+                if req_container:
+                    elementos_req = req_container.find_all("li")
+                    requerimientos = "\n".join([f"- {li.get_text(strip=True)}" for li in elementos_req])
+                else:
+                    requerimientos = "No especificados"
+
+                #palabras clave
+                tags_tag = soup_oferta_i.find("p", class_="fc_aux fs13 mbB mtB")
+                if tags_tag:
+                    palabras_clave = tags_tag.get_text(strip=True).replace("Palabras clave:", "").strip()
+                else:
+                    palabras_clave = "Ninguna"
+
+
+                #CREACION DE UN DICCIONARIO PARA CADA OFERTA
+                ofertas_dict = {
+                    "fuente": "Computrabajo",
+                    "titulo": titulo,
+                    "empresa": empresa,
+                    "ciudad": ciudad,
+                    "salario": salario_numerico,
+                    "descripcion": descripcion,
+                    "requerimientos": requerimientos,
+                    "palabras_clave": palabras_clave,
+                    "fecha_publicacion": publicacion,
+                    "fecha_scraping" : fecha_scrapeo,
+                    "url": complete_url
+                }
+                ofertas_estructuradas.append(ofertas_dict)
+                cont+=1
+                
+                time.sleep(0.5) # NUEVO: Pausa mínima anti-bloqueo entre ofertas individuales
+
+            time.sleep(2) # NUEVO: Pausa anti-bloqueo entre páginas completas
+        else:
+            return f"Hubo un error: {respuesta.status_code}"
+            
+    return ofertas_estructuradas # Al final de todas las páginas, retorna la lista completa
+    
