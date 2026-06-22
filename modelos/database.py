@@ -129,9 +129,11 @@ def obtener_salario_promedio():
 
     cursor.execute("SELECT AVG(salario) AS promedio FROM empleos")
     promedio = cursor.fetchone()[0]
+    text_americano = f"{promedio:,.2f}"
+    prom_string = text_americano.replace(',', 'X').replace('.', ',').replace('X', '.')
 
     conexion.close()
-    return promedio
+    return f"${prom_string} COP"
 
 #TECNOLOGIAS MAS PEDIDAS
 def contar_tecnologias():
@@ -216,4 +218,17 @@ def obtener_ofertas():
     conexion.close()
     return ofertas
 
-
+#Borrar los registros
+def vaciar_tabla_empleos():
+    #Elimina todos los registros de la tabla
+    conexion = sqlite3.connect("data/empleos.db")
+    cursor = conexion.cursor()
+    
+    try:
+        cursor.execute("DELETE FROM empleos")
+        conexion.commit()
+        print("¡Todos los registros han sido eliminados de forma exitosa!")
+    except sqlite3.Error as e:
+        print(f"Error al vaciar la tabla: {e}")
+    finally:
+        conexion.close()

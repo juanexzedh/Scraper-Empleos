@@ -1,11 +1,11 @@
-import requests, sys, io, time # <-- Añadido time
+import requests, sys, io, time
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor por defecto
+def extraer_ofertas_computrabajo(paginas=5): # Parametro con valor por defecto
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-    # Ajustamos la URL base para poder concatenar las páginas dinámicamente
+    # URL BASE para los cambios entre paginas
     url_base = "https://co.computrabajo.com/trabajo-de-ingeniero-en-sistemas"
 
     headers = {
@@ -26,9 +26,9 @@ def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor
     ofertas_estructuradas = []
     cont = 1
 
-    # NUEVO: Bucle para iterar entre las páginas
+    #Bucle para iterar entre paginas
     for p in range(1, paginas + 1):
-        url = f"{url_base}?p={p}" # <-- Reconstruye la URL por cada página
+        url = f"{url_base}?p={p}" # <-- La url acaba o refiere a la pagina que scrapea
 
         respuesta = requests.get(url, headers=headers, timeout=10)
 
@@ -37,7 +37,7 @@ def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor
             soup = BeautifulSoup(respuesta.text, 'html.parser')
             ofertas = soup.find_all('article', class_="box_offer")
             
-            # NUEVO: Si llegas a una página vacía, detiene el bucle
+            # si llega a una página vacia, detiene el bucle
             if not ofertas:
                 break
 
@@ -57,7 +57,7 @@ def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor
                     if empresa_name:
                         empresa = empresa_name.get_text(strip=True)#Nombre dentro de <a>
                     else:
-                        empresa = "No especificada" # Tu código original decía empresa_tag.get_text, corregido bug menor
+                        empresa = "No especificada"
                 else:
                     empresa = "No especificada"
 
@@ -71,11 +71,11 @@ def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor
                     try:
                         # Dejar solo números, puntos y comas y reemplazar el $ y cualquier espacio, y dividir en el paréntesis
                         solo_numeros = salario_texto.split('(')[0].replace('$', '').strip()
+                        # Quitar los puntos de los miles -> "2000000,00"
+                        # Cambiar la coma decimal por un punto -> "2000000.00"
+                        numero_formateado = solo_numeros.replace('.', '').replace(',', '.')
                         
-                        #Quitar puntos de miles y cambiar coma decimal por punto
-                        numero_formateado = solo_numeros.replace('.', '').replace(',', '')
-                        
-                        #Convertir a tipo numerico
+                        # Convertir a tipo numerico -> 2000000.0 (float)
                         salario_numerico = float(numero_formateado)
                         
                     except (ValueError, IndexError):
@@ -137,11 +137,11 @@ def extraer_ofertas_computrabajo(paginas=3): # <-- Añadido parámetro con valor
                 ofertas_estructuradas.append(ofertas_dict)
                 cont+=1
                 
-                time.sleep(0.5) # NUEVO: Pausa mínima anti-bloqueo entre ofertas individuales
+                time.sleep(0.5) # Pausa minima anti-bloqueo entre ofertas individuales
 
-            time.sleep(2) # NUEVO: Pausa anti-bloqueo entre páginas completas
+            time.sleep(2) # Pausa anti-bloqueo entre paginas completas
         else:
             return f"Hubo un error: {respuesta.status_code}"
             
-    return ofertas_estructuradas # Al final de todas las páginas, retorna la lista completa
+    return ofertas_estructuradas
     
