@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resultados</title>
+</head>
+<body>
+
+    <h1>Resultados para "{{ palabra }}"</h1>
+
+    <p>Total encontrados: {{ resultados|length }}</p>
+
+    <ul>
+    {% for oferta in resultados %}
+        <li>
+            {{ oferta[0] }} - {{ oferta[1] }} - {{ oferta[2] }}
+        </li>
+    {% endfor %}
+    </ul>
+
+</body>
+</html>

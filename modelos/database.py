@@ -128,13 +128,13 @@ def obtener_salario_promedio():
     cursor = conexion.cursor()
 
     cursor.execute("SELECT AVG(salario) AS promedio FROM empleos")
-    promedio = cursor.fetchone()
+    promedio = cursor.fetchone()[0]
 
     conexion.close()
     return promedio
 
-#BUSCADOR POR KEYWORD
-def buscar_por_palabra_clave():
+#TECNOLOGIAS MAS PEDIDAS
+def contar_tecnologias():
     conexion = sqlite3.connect("data/empleos.db")
     cursor = conexion.cursor()
 
@@ -168,7 +168,52 @@ def buscar_por_palabra_clave():
             if tecnologia.lower() in texto: #si la tecnologia (en miniscula) esta en el texto, le añade uno al contador de esa tecnologia
                 conteo[tecnologia] += 1
 
+    top_tecnologias = []
+    for tecnologia in conteo:
+        top_tecnologias.append((conteo[tecnologia], tecnologia))
+    top_tecnologias.sort(reverse=True)
+
     conexion.close()
-    return conteo
+    return top_tecnologias[:10]
+
+
+#BUSCADOR POR KEYWORD
+def buscar_por_palabra_clave(palabra):
+    conexion = sqlite3.connect("data/empleos.db")
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+        SELECT titulo, empresa, ciudad, url
+        FROM empleos
+        WHERE descripcion LIKE ?
+        OR requerimientos LIKE ?
+        OR palabras_clave LIKE ?
+        OR titulo LIKE ?
+    """,
+    (
+        f"%{palabra}%",
+        f"%{palabra}%",
+        f"%{palabra}%",
+        f"%{palabra}%"
+    ))
+
+    resultados = cursor.fetchall()
+    conexion.close()
+    return resultados
+
+#OBTENER OFERTAS
+def obtener_ofertas():
+    conexion = sqlite3.connect("data/empleos.db")
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+        SELECT titulo, empresa, ciudad
+        FROM empleos
+        LIMIT 3
+    """)
+
+    ofertas = cursor.fetchall()
+    conexion.close()
+    return ofertas
 
 
