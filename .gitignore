@@ -6,12 +6,12 @@ env/
 
 # Caché de Python
 
-**pycache**/
+**_pycache_**/
 *.pyc
 *.pyo
 *.pyd
 
-# Archivos de SQLite
+# Archivos de SQLites
 
 *.db
 *.sqlite3
