@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
             datasets: [{
                 label: 'Tecnologías más solicitadas',
                 data: datosY,
-                borderColor: 'rgba(75, 192, 192, 1)',
+                borderColor: 'rgb(192, 190, 75)
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderWidth: 3,
                 tension: 0.3
