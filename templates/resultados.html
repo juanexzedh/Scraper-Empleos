@@ -9,12 +9,12 @@
     <title>Resultados</title>
 
     <style>
-body { background: #0b1220; color: #f1f5ff; }
+        body { background: #0b1220; color: #f1f5ff; }
+                .app-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); }
+                .muted { color: rgba(241,245,255,0.78) !important; }
         .app-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); }
+                .table-dark-soft { --bs-table-bg: rgba(255,255,255,0.04); --bs-table-striped-bg: rgba(255,255,255,0.02); }
         .muted { color: rgba(241,245,255,0.78) !important; }
-.app-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); }
-        .table-dark-soft { --bs-table-bg: rgba(255,255,255,0.04); --bs-table-striped-bg: rgba(255,255,255,0.02); }
-.muted { color: rgba(241,245,255,0.78) !important; }
     </style>
 </head>
 <body>
@@ -53,10 +53,15 @@ body { background: #0b1220; color: #f1f5ff; }
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card app-card h-100">
                         <div class="card-body">
-                            <div class="fw-semibold mb-2">{{ oferta[0] }}</div>
+                            <div class="fw-semibold mb-2 text-light">{{ oferta[0] }}</div>
                             <div class="muted" style="font-size: 0.95rem;">{{ oferta[1] }}</div>
                             <div class="mt-3">
-                                <span class="badge text-bg-secondary rounded-pill">{{ oferta[2] }}</span>
+                                <span class="badge text-bg-secondary rounded-pill text-light">{{ oferta[2] }}</span>
+                            </div>
+                            <div class="mt-3">
+                                <a href="{{ oferta[3] }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    Ver oferta
+                                </a>
                             </div>
                         </div>
                     </div>
