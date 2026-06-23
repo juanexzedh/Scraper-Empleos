@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const ctx = document.getElementById('miGrafica').getContext('2d');
+    const ctx = document.getElementById('GraficaTec').getContext('2d');
     const datosX = tecnologias;
     const datosY = cantidades;
 
@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function() {
         data: {
             labels: datosX,
             datasets: [{
-                label: 'Tecnologías más solicitadas ($)',
+                label: 'Tecnologías más solicitadas',
                 data: datosY,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',

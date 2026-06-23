@@ -73,26 +73,9 @@
         </table>
 
         <h2>Tecnologías más demandadas</h2>
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Tecnologia</th>
-                    <th>Cantidad</th>
-                </tr>
-            </thead>
-
-            <tbody>
-            {% for cantidad, tecnologia in tecnologias %}
-                <tr>
-                    <td>{{ tecnologia }}</td>
-                    <td>{{ cantidad }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
 
         <div style="width: 600px; margin: auto;">
-            <canvas id="miGrafica"></canvas>
+            <canvas id="GraficaTec"></canvas>
         </div>
 
         <form action="/buscar" method="GET">
@@ -124,3 +107,4 @@
     <script src="../static/script.js"></script>
 </body>
 </html>
+
